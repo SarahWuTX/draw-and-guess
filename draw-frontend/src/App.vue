@@ -15,7 +15,7 @@ export default {
   mounted() {
     window.onbeforeunload = function(e) {
       e = e || window.event;
-      console.log(sessionStorage.getItem("user").email);
+      // console.log(sessionStorage.getItem("user").email);
       if (e) {
         this.$confirm("退出后将清除游戏数据, 是否继续?", "提示", {
           confirmButtonText: "确定",
@@ -44,7 +44,7 @@ export default {
           params: { email: sessionStorage.getItem("user").email }
         })
         .then(() => {
-          console.log("deleted");
+          // console.log("deleted");
         });
     };
   }

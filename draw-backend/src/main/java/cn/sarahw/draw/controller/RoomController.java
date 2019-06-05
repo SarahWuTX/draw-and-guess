@@ -41,6 +41,8 @@ public class RoomController {
         if (room == null) {
             return ErrorMessage.objectNotFound;
         } else {
+            Current current = currentRepository.findByRoomId(id);
+            room.setCurrent(current);
             return new ResponseEntity<>(room, HttpStatus.OK);
         }
     }

@@ -47,11 +47,18 @@
       <el-button plain type="primary" @click="wsSendMessage" :disabled="isDrawer">发送</el-button>
     </div>
     <div>
-      <div v-if="mark != null">
-        <div v-for="m in mark" :key="m.email">
-          <span>({{m.rank}})</span>
-          <span>{{m.name}}:</span>
-          <span>{{m.mark}}</span>
+      <div
+        v-if="mark != null"
+        style="margin: 0.5rem; font-size: 1.25rem; color: #E6A23C; text-align: center;"
+      >~~ ~~ 玩家排行 ~~ ~~</div>
+      <div v-if="mark != null" class="horizontal">
+        <div v-for="m in mark" :key="m.email" class="ranking">
+          <span v-if="m.rank == 1" class="rank rank1">{{m.rank}}</span>
+          <span v-else-if="m.rank == 2" class="rank rank2">{{m.rank}}</span>
+          <span v-else-if="m.rank == 3" class="rank rank3">{{m.rank}}</span>
+          <span v-else class="rank">{{m.rank}}</span>
+          <span>{{m.name}} :</span>
+          <span>{{m.mark}} 分</span>
         </div>
       </div>
     </div>
@@ -116,7 +123,6 @@ export default {
       }
     },
     isMe(email) {
-      console.log(email == this.$store.state.user.email);
       return email == this.$store.state.user.email;
     }
   }
@@ -178,7 +184,7 @@ export default {
   width: -webkit-fit-content;
   width: -moz-fit-content;
   opacity: 1;
-  transition: opacity 3s ease;
+  transition: width 3s ease;
   width: auto;
   min-height: 1.5rem;
   word-wrap: break-word;
@@ -261,5 +267,25 @@ input:-ms-input-placeholder,
 input:-moz-placeholder,
 input::-moz-placeholder {
   color: rgb(192, 196, 203);
+}
+
+.ranking {
+  margin: 0.5rem;
+}
+
+.rank {
+  background-color: lightgrey;
+  border-radius: 1.25rem;
+  padding: 0.2rem 0.6rem;
+}
+
+.rank1 {
+  background-color: #f2d96a;
+}
+.rank2 {
+  background-color: #d8d8d6;
+}
+.rank3 {
+  background-color: #d28241;
 }
 </style>

@@ -101,7 +101,9 @@ export default {
         .then(response => {
           var room = response.data;
           if (room.users.length >= 6) {
-            self.$message.warning("没挤进去，房间已经满了\n");
+            self.$message.warning("房间已经满了\n");
+          } else if (room.current != null) {
+            self.$message.warning("游戏进行中\n");
           } else {
             self.$router.push({
               name: "room",

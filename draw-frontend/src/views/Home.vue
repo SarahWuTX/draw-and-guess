@@ -37,7 +37,7 @@ export default {
         ele.className = "letter";
         letterEle.appendChild(ele);
       }
-      console.log(letters);
+      // console.log(letters);
       anime
         .timeline({ loop: true })
         .add({

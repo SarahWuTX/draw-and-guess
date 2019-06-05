@@ -178,6 +178,11 @@ export default {
           params: { id: self.roomId }
         })
         .then(response => {
+          console.log(response.data);
+          self.$store.commit("setCurrent", response.data.current);
+          console.log(response.data.current);
+          delete response.data.current;
+          console.log(response.data);
           self.$store.commit("setRoom", response.data);
           for (var i in response.data.users) {
             if (
@@ -317,10 +322,12 @@ export default {
       if (this.isDrawer) {
         return;
       }
-      this.$alert("共有" + this.current.count.length + "人答对", "本轮结束", {
+      this.$confirm("共有" + this.current.count.length + "人答对", "本轮结束", {
         confirmButtonText: "献花🌹",
         cancelButtonText: "扔鸡蛋🥚",
-        center: true
+        center: true,
+        distinguishCancelAndClose: true,
+        showClose: false
       })
         .then(() => {
           this.$store.state.ws.send(

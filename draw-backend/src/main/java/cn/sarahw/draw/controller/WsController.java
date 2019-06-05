@@ -148,6 +148,9 @@ public class WsController {
         int puzzleIndex = new Random().nextInt(puzzles.size());
         for (int round = 1; round <= 2; round++) {
             for (User user : room.getUsers()) {
+                // clean canvas
+                template.convertAndSend("/topic/canvas/" + roomId, "{\"type\":\"clean\"}");
+
                 current = currentRepository.findByRoomId(roomId);
                 current.setCount(new ArrayList<>());
                 current.setPuzzle(puzzles.get(puzzleIndex));
@@ -201,8 +204,6 @@ public class WsController {
 
                 // refresh puzzle
                 puzzleIndex = (++puzzleIndex + new Random().nextInt(3)) % puzzles.size();
-                // clean canvas
-                template.convertAndSend("/topic/canvas/" + roomId, "{\"type\":\"clean\"}");
 
                 // have a rest
                 try {
