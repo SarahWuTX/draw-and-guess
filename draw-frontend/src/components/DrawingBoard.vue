@@ -66,11 +66,6 @@
         </el-tooltip>
       </div>
 
-      <!-- <el-button-group>
-          <el-button @click="isPen=true">画笔</el-button>
-          <el-button @click="isPen=false">橡皮</el-button>
-      </el-button-group>-->
-
       <div class="tool">
         <p>橡皮大小</p>
         <el-slider v-model="eraserWidth" :show-tooltip="true" style="width: 100px;"></el-slider>
@@ -80,15 +75,11 @@
           <el-button type="info" icon="el-icon-delete" circle @click="cleanCanvas"></el-button>
         </el-tooltip>
       </div>
-      <!-- <div class="imgButtonBox tool">
-        <img :src="require('../../static/tools/bin.png')" @click="cleanCanvas" class="imgButton">
-      </div>-->
     </div>
   </div>
 </template>
 
 <script>
-// import d3 from "d3";
 import SVG from "svg.js";
 import "@svgdotjs/svg.draggable.js";
 
@@ -261,7 +252,7 @@ export default {
     },
     isDrawer(val) {
       if (val != null && val == true) {
-        this.isPen = true;
+        this.handleChoosePen(true);
       }
     }
   },
@@ -295,6 +286,9 @@ export default {
       svgBoard.setAttribute("style", "z-index: 10");
     },
     cursorDown(e) {
+      if (!this.isDrawer) {
+        return;
+      }
       var pos = this.canvasPos;
       this.lastPos.X = e.pageX - pos.X;
       this.lastPos.Y = e.pageY - pos.Y;
@@ -374,6 +368,9 @@ export default {
       this.isMouseDown = true;
     },
     dragShape(e) {
+      if (!this.isDrawer) {
+        return;
+      }
       if (!this.isMouseDown) {
         return;
       }
@@ -445,6 +442,9 @@ export default {
       }
     },
     cursorUp(e) {
+      if (!this.isDrawer) {
+        return;
+      }
       this.isMouseDown = false;
       var shapeToSend = null;
       switch (this.shape) {
@@ -463,7 +463,6 @@ export default {
           };
           break;
         case 1:
-          console.log(this.currentShape);
           shapeToSend = {
             type: "shape",
             shape: this.shape,
@@ -526,18 +525,18 @@ export default {
       this.currentShape = null;
     },
     penDown(e) {
-      // if (!this.isDrawer) {
-      //   return;
-      // }
+      if (!this.isDrawer) {
+        return;
+      }
       var pos = this.canvasPos;
       this.lastPos.X = e.pageX - pos.X;
       this.lastPos.Y = e.pageY - pos.Y;
       this.isMouseDown = true;
     },
     handDraw(e) {
-      // if (!this.isDrawer) {
-      //   return;
-      // }
+      if (!this.isDrawer) {
+        return;
+      }
       if (!this.isMouseDown) {
         return;
       }
@@ -573,18 +572,18 @@ export default {
       this.lastPos.Y = e.pageY - pos.Y;
     },
     penUp(e) {
-      // if (!this.isDrawer) {
-      //   return;
-      // }
+      if (!this.isDrawer) {
+        return;
+      }
       this.isMouseDown = false;
       var pos = this.canvasPos;
       this.lastPos.X = e.pageX - pos.X;
       this.lastPos.Y = e.pageY - pos.Y;
     },
     cleanCanvas() {
-      // if (!this.isDrawer) {
-      //   return;
-      // }
+      if (!this.isDrawer) {
+        return;
+      }
       this.wsSendCanvas({
         type: "clean"
       });

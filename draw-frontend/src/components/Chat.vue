@@ -1,6 +1,6 @@
 <template>
   <div id="chat">
-    <div id="box" ref="box" v-scroll="{style: 'opacity: 1; transition: all 5s'}">
+    <div id="box" ref="box">
       <div style="float: right; position: absolute">你好，{{$store.state.user.name}}</div>
       <div style="flex: 1"></div>
       <!-- <div
@@ -142,7 +142,7 @@ export default {
 #box {
   overflow-y: auto;
   overflow-x: hidden;
-  height: 33rem;
+  height: 31rem;
   display: flex;
   flex-direction: column;
 }

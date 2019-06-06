@@ -30,14 +30,12 @@ export default {
       var letterEle = document.getElementsByClassName("letters")[0];
       var letters = letterEle.textContent.split("");
       letterEle.textContent = "";
-      // console.log(letters);
       for (var i in letters) {
         var ele = document.createElement("span");
         ele.textContent = letters[i];
         ele.className = "letter";
         letterEle.appendChild(ele);
       }
-      // console.log(letters);
       anime
         .timeline({ loop: true })
         .add({

@@ -1,10 +1,21 @@
 <template>
   <div class="room horizontal" style="width: 100%">
+    <el-dialog title :visible.sync="rankVisible" width="30%" center>
+      <h2 style="text-align: center; margin-top: 0;">排行榜</h2>
+      <div v-for="m in displayRank" :key="m.email" class="ranking" style="text-align: center;">
+        第
+        <span v-if="m.rank == 1" class="rank rank1">{{m.rank}}</span>
+        <span v-else-if="m.rank == 2" class="rank rank2">{{m.rank}}</span>
+        <span v-else-if="m.rank == 3" class="rank rank3">{{m.rank}}</span>
+        <span v-else class="rank">{{m.rank}}</span>
+        名&emsp;&emsp;
+        <span>{{m.name}} :</span>
+        <span>&emsp;{{m.mark}} 分</span>
+      </div>
+    </el-dialog>
     <div v-for="(gif, i) in gifs" :key="i">
       <gif :src="gif.src" :style="'top: '+gif.top+'rem ; left:' + gif.left + 'rem'"></gif>
-      <!-- <img :src="gif.src" style="width: 20rem; height: 20rem;"> -->
     </div>
-
     <div style="width: 65%; float:left">
       <div class="headBar">
         <el-button plain @click="handleBack" style="padding: 0.75rem 0rem;" class="rotate">返回大厅</el-button>
@@ -20,14 +31,14 @@
             <span @mousedown="handleChange" id="roomName">房间: {{room.name}}</span>
           </el-tooltip>
           <transition name="fade">
-            <span v-if="showPuzzle">第 {{current.round}}/3 回合</span>
+            <span v-if="showPuzzle">第 {{current.round}}/2 回合</span>
           </transition>
           <transition name="fade" v-if="showPuzzle">
             <span v-if="!isDrawer" class="puzzle">{{current.puzzle.tip}}，{{current.puzzle.length}}个字</span>
             <span v-else class="puzzle">{{current.puzzle.answer}}</span>
           </transition>
         </div>
-        <el-button @click="test" style="margin: 0; padding: 0">try</el-button>
+        <!-- <el-button @click="onStop" style="margin: 0; padding: 0">try</el-button> -->
       </div>
       <ready v-if="isShowReady"></ready>
       <show-drawer v-if="showDrawer" :name="drawerName"></show-drawer>
@@ -69,11 +80,16 @@ export default {
       startButtonDisabled: false,
       isShowReady: false,
       showDrawer: false,
+      rankVisible: false,
       drawerName: "",
-      allGif: []
+      allGif: [],
+      rank: []
     };
   },
   computed: {
+    displayRank() {
+      return this.rank;
+    },
     gifs() {
       return this.allGif;
     },
@@ -178,11 +194,8 @@ export default {
           params: { id: self.roomId }
         })
         .then(response => {
-          console.log(response.data);
           self.$store.commit("setCurrent", response.data.current);
-          console.log(response.data.current);
           delete response.data.current;
-          console.log(response.data);
           self.$store.commit("setRoom", response.data);
           for (var i in response.data.users) {
             if (
@@ -261,7 +274,7 @@ export default {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
         inputValidator: value => {
-          if (value == "") {
+          if (value == null || value == "") {
             return "不能为空";
           }
         }
@@ -309,14 +322,16 @@ export default {
       this.startButtonDisabled = true;
     },
     onStop() {
-      this.$notify({
-        title: "游戏结束！",
-        dangerouslyUseHTMLString: true,
-        message: "<div>可能展示信息……</div>",
-        offset: 300
-      });
-      this.$store.commit("setCurrent", null);
+      this.$message.warning("游戏结束！");
+      this.rank = [];
+      for (var i in this.current.mark) {
+        this.rank.push(JSON.parse(JSON.stringify(this.current.mark[i])));
+      }
       this.startButtonDisabled = false;
+      this.rankVisible = true;
+      setTimeout(() => {
+        this.$store.commit("setCurrent", null);
+      }, 5000);
     },
     onTimesUp() {
       if (this.isDrawer) {
@@ -326,8 +341,7 @@ export default {
         confirmButtonText: "献花🌹",
         cancelButtonText: "扔鸡蛋🥚",
         center: true,
-        distinguishCancelAndClose: true,
-        showClose: false
+        distinguishCancelAndClose: true
       })
         .then(() => {
           this.$store.state.ws.send(
@@ -336,12 +350,14 @@ export default {
             JSON.stringify({ message: false, sender: this.user.name })
           );
         })
-        .catch(() => {
-          this.$store.state.ws.send(
-            "/app/order/" + this.roomId + "/comment",
-            {},
-            JSON.stringify({ message: true, sender: this.user.name })
-          );
+        .catch(action => {
+          if (action === "cancel") {
+            this.$store.state.ws.send(
+              "/app/order/" + this.roomId + "/comment",
+              {},
+              JSON.stringify({ message: true, sender: this.user.name })
+            );
+          }
         });
     },
     onReady() {
@@ -366,18 +382,16 @@ export default {
       }, 3500);
     },
     onComment(isEgg) {
-      console.log(isEgg);
+      var gifSrc;
       if (isEgg) {
-        var src = require("../../static/gif/egg_" +
-          this.allGif.length +
-          ".gif");
+        gifSrc = require("../../static/gif/egg_" + this.allGif.length + ".gif");
       } else {
-        var src = require("../../static/gif/flower_" +
+        gifSrc = require("../../static/gif/flower_" +
           this.allGif.length +
           ".gif");
       }
       this.allGif.push({
-        src: src,
+        src: gifSrc,
         left: Math.floor(Math.random() * 10) * 4 + 10,
         top: Math.floor(Math.random() * 10) * 1.5 + 5
       });
@@ -455,7 +469,28 @@ export default {
 }
 
 .rotate:hover {
-  transform: rotate(360deg) scale(1.1, 1.1);
+  transform: rotateX(360deg) scale(1.1, 1.1);
   transition: 0.3s cubic-bezier(0.55, 0.055, 0.675, 0.19);
+}
+
+.ranking {
+  margin: 1rem;
+  font-size: 1.2rem;
+}
+
+.rank {
+  background-color: lightgrey;
+  border-radius: 1.25rem;
+  padding: 0.5rem 0.8rem;
+}
+
+.rank1 {
+  background-color: #f2d96a;
+}
+.rank2 {
+  background-color: #d8d8d6;
+}
+.rank3 {
+  background-color: #d28241;
 }
 </style>

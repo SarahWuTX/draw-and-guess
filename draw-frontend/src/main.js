@@ -11,21 +11,8 @@ Vue.config.productionTip = false;
 Vue.use(ElementUI);
 Vue.use(VueAnime);
 Vue.prototype.$axios = axios;
-Vue.prototype.serverUrl = "http://localhost:8887";
-// Vue.prototype.serverUrl = "https://www.sarahw.cn";
-
-// 注册一个全局自定义指令
-Vue.directive("scroll", {
-  // 当被绑定的元素插入到 DOM 中时……
-  inserted: function(el, binding) {
-    let f = function(evt) {
-      var top = el.scrollTop;
-      // console.log(top);
-      el.setAttribute("style", binding.value.style);
-    };
-    window.addEventListener("scroll", f);
-  }
-});
+// Vue.prototype.serverUrl = "http://localhost:8887";
+Vue.prototype.serverUrl = "http://www.sarahw.cn:8887";
 
 new Vue({
   router,

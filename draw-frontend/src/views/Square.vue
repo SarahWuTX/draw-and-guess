@@ -9,7 +9,7 @@
       >
         <el-button slot="append" icon="el-icon-search" @click="handleSearchRoom"></el-button>
       </el-input>
-      <!-- <span style="float: right">你好，{{sessionStorage.getItem("name")}}</span> -->
+      <el-button type="primary" plain @click="handleLogOut" style="float: right">退出</el-button>
     </div>
 
     <div>
@@ -103,6 +103,14 @@ export default {
           if (room.users.length >= 6) {
             self.$message.warning("房间已经满了\n");
           } else if (room.current != null) {
+            for (var i in room.users) {
+              if (room.users[i].email == sessionStorage.getItem("user")) {
+                self.$router.push({
+                  name: "room",
+                  params: { id: room.id }
+                });
+              }
+            }
             self.$message.warning("游戏进行中\n");
           } else {
             self.$router.push({
@@ -126,6 +134,11 @@ export default {
         .catch(error => {
           self.$message.error("创建房间失败\n" + error);
         });
+    },
+    handleLogOut() {
+      sessionStorage.removeItem("user");
+      sessionStorage.removeItem("name");
+      this.$router.push({ name: "enter" });
     }
   }
 };
@@ -142,7 +155,7 @@ export default {
 }
 
 .el-button:hover {
-  transform: rotate(360deg) scale(1.1, 1.1);
+  transform: rotateX(360deg) scale(1.1, 1.1);
   transition: 0.3s cubic-bezier(0.55, 0.055, 0.675, 0.19);
 }
 

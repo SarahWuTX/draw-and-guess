@@ -11,35 +11,58 @@
     <br>
     <el-button type="primary" plain @click="enter">进入游戏</el-button>
     <!-- 登录对话框 -->
-    <!-- <el-dialog title="登录" :visible.sync="dialogFormVisible" width="40%">
-      <el-form :model="form" :label-width="formLabelWidth" :rules="rules">
+    <el-dialog title="登录" :visible.sync="loginFormVisible" width="40%">
+      <el-form :model="loginForm" :label-width="formLabelWidth" :rules="loginRules" ref="loginForm">
+        <el-form-item label="邮箱" prop="email">
+          <el-input v-model="loginForm.email" clearable></el-input>
+        </el-form-item>
+        <el-form-item label="密码" prop="password">
+          <el-input v-model="loginForm.password" show-password clearable></el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <div style="float: left; color: gray; margin-top: 1rem; font-size: 0.5rem;">
+          还没注册？
+          <span class="link" @click="handleRegister">点击注册</span>
+          或
+          <span class="link" @click="handleTouristLogin">以游客身份登录</span>
+        </div>
+        <el-button @click="loginFormVisible = false">取 消</el-button>
+        <el-button type="primary" @click="login">确 定</el-button>
+      </div>
+    </el-dialog>
+    <!-- 注册对话框 -->
+    <el-dialog title="注册" :visible.sync="registerFormVisible" width="40%">
+      <el-form :model="form" :label-width="formLabelWidth" :rules="rules" ref="form">
         <el-form-item label="邮箱" prop="email">
           <el-input v-model="form.email" clearable></el-input>
         </el-form-item>
         <el-form-item label="密码" prop="password">
           <el-input v-model="form.password" show-password clearable></el-input>
         </el-form-item>
+        <el-form-item label="重复密码" prop="password2">
+          <el-input v-model="form.password2" show-password clearable></el-input>
+        </el-form-item>
+        <el-form-item label="昵称" prop="name">
+          <el-input v-model="form.name" clearable></el-input>
+        </el-form-item>
         <el-form-item label="性别">
           <el-select v-model="form.sex" placeholder="选择">
-            <el-option label="女" value="woman"></el-option>
-            <el-option label="男" value="man"></el-option>
+            <el-option label="女" value="1"></el-option>
+            <el-option label="男" value="2"></el-option>
           </el-select>
         </el-form-item>
       </el-form>
-
       <div slot="footer" class="dialog-footer">
         <div style="float: left; color: gray; margin-top: 1rem; font-size: 0.5rem;">
-          <span>
-            还没注册？
-            <router-link to="register" class="link">点击注册</router-link>
-          </span>
-          或
-          <span class="link" @click="handleTouristLogin">以游客身份登录</span>
+          已有账号？
+          <span class="link" @click="handleLogin">直接登录</span>
         </div>
-        <el-button @click="dialogFormVisible = false">取 消</el-button>
-        <el-button type="primary" @click="enter">确 定</el-button>
+        <el-button @click="registerFormVisible = false">取 消</el-button>
+        <el-button type="primary" @click="registerNext">下 一 步</el-button>
       </div>
-    </el-dialog>-->
+    </el-dialog>
+    <!-- 昵称对话框 -->
     <el-dialog title="设置昵称" :visible.sync="dialogNameVisible" width="40%">
       <input
         placeholder="输入昵称"
@@ -48,12 +71,10 @@
       >
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogNameVisible = false">取 消</el-button>
-        <el-button
-          type="primary"
-          @click="dialogNameVisible = false; dialogAvatarVisible = true;"
-        >下 一 步</el-button>
+        <el-button type="primary" @click="touristNext">下 一 步</el-button>
       </div>
     </el-dialog>
+    <!-- 头像对话框 -->
     <el-dialog title="选择头像" :visible.sync="dialogAvatarVisible" width="40%">
       <el-radio v-model="sex" label="1">女</el-radio>
       <el-radio v-model="sex" label="2">男</el-radio>
@@ -71,14 +92,20 @@
         </el-carousel>
       </div>
       <div v-else>
-        <el-carousel :autoplay="false" type="card" height="10rem" indicator-position="none">
+        <el-carousel
+          :autoplay="false"
+          type="card"
+          height="10rem"
+          indicator-position="none"
+          @change="changeAvartar"
+        >
           <el-carousel-item v-for="avatar in avatars.man" :key="avatar">
             <embed :src="avatar" type="image/svg+xml">
           </el-carousel-item>
         </el-carousel>
       </div>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogAvatarVisible = false">取 消</el-button>
+        <el-button @click="handleLastStep">上 一 步</el-button>
         <el-button type="primary" @click="sureToCreateUser">确 定</el-button>
       </div>
     </el-dialog>
@@ -87,25 +114,88 @@
 
 <script>
 import anime from "animejs";
+import { callbackify } from "util";
 
 export default {
   name: "enter",
   components: {},
   data() {
+    var validatePass2 = (rule, value, callback) => {
+      if (value !== this.form.password) {
+        callback(new Error("两次输入密码不一致!"));
+      } else {
+        callback();
+      }
+    };
     return {
+      loginFormVisible: false,
+      registerFormVisible: false,
       dialogNameVisible: false,
       dialogAvatarVisible: false,
-      isRegister: false,
+      currentStatus: 0,
+      status: {
+        login: 0,
+        register: 1,
+        tourist: 2
+      },
       sex: "1",
+      loginForm: {
+        email: "",
+        password: ""
+      },
       form: {
         email: "",
         password: "",
-        name: ""
+        password2: "",
+        name: "",
+        sex: "1"
       },
       formLabelWidth: "5rem",
+      loginRules: {
+        email: [
+          {
+            required: true,
+            message: "请输入邮箱",
+            trigger: ["blur", "change"]
+          },
+          {
+            type: "email",
+            message: "请输入正确的邮箱地址",
+            trigger: ["blur", "change"]
+          }
+        ],
+        password: [
+          {
+            required: true,
+            message: "请输入密码",
+            trigger: ["blur", "change"]
+          }
+        ]
+      },
       rules: {
-        email: [{ required: true, message: "请输入邮箱", trigger: "blur" }],
-        password: [{ required: true, message: "请输入密码", trigger: "blur" }]
+        email: [
+          {
+            required: true,
+            message: "请输入邮箱",
+            trigger: ["blur", "change"]
+          },
+          {
+            type: "email",
+            message: "请输入正确的邮箱地址",
+            trigger: ["blur", "change"]
+          }
+        ],
+        password: [
+          { required: true, message: "请输入密码", trigger: ["blur", "change"] }
+        ],
+        password2: [
+          {
+            required: true,
+            message: "请再次输入密码",
+            trigger: ["blur", "change"]
+          },
+          { validator: validatePass2, trigger: "blur" }
+        ]
       },
       avatars: {
         man: [],
@@ -126,10 +216,9 @@ export default {
     enter() {
       var uid = sessionStorage.getItem("user");
       if (uid == null) {
-        this.dialogNameVisible = true;
+        this.loginFormVisible = true;
       } else {
         this.getUserInfo();
-        this.$router.push({ name: "square" });
       }
     },
     getUserInfo() {
@@ -139,11 +228,41 @@ export default {
           params: { email: sessionStorage.getItem("user") }
         })
         .then(response => {
-          // sessionStorage.setItem("name", response.data.username);
+          sessionStorage.setItem("name", response.data.username);
           self.$store.commit("setUser", response.data);
+          this.$router.push({ name: "square" });
         })
         .catch(error => {
-          self.$message.error("出错啦\n", error);
+          var msg = error.request.responseText;
+          if (msg == null || msg == "") {
+            msg = "出错啦";
+          }
+          self.$message.error(msg);
+          sessionStorage.removeItem("user");
+          this.enter();
+        });
+    },
+    login() {
+      if (!this.submitForm("loginForm")) {
+        return;
+      }
+      var self = this;
+      this.$axios
+        .get(self.serverUrl + "/user", {
+          params: { email: self.loginForm.email }
+        })
+        .then(response => {
+          if (response.data.password == self.loginForm.password) {
+            sessionStorage.setItem("user", self.loginForm.email);
+            sessionStorage.setItem("name", response.data.username);
+            self.$store.commit("setUser", response.data);
+            self.$router.push({ name: "square" });
+          } else {
+            self.$message.error("用户名或密码错误");
+          }
+        })
+        .catch(error => {
+          self.$message.error("用户名或密码错误");
         });
     },
     sureToCreateUser() {
@@ -155,20 +274,33 @@ export default {
         this.sex == "1"
           ? this.avatars.woman[this.currentAvatarIndex]
           : this.avatars.man[this.currentAvatarIndex];
-      var user = {
-        email: id,
-        password: id,
-        name: this.username,
-        avatar: avatar
-      };
+      if (this.currentStatus == this.status.tourist) {
+        var user = {
+          email: id,
+          password: id,
+          name: this.username,
+          avatar: avatar
+        };
+      } else {
+        var username = this.form.name;
+        if (username == "") {
+          username = id;
+        }
+        var user = {
+          email: this.form.email,
+          password: this.form.password,
+          name: username,
+          avatar: avatar
+        };
+      }
       this.$axios
         .post(this.serverUrl + "/user", user)
         .then(() => {
-          sessionStorage.setItem("user", id);
+          sessionStorage.setItem("user", user.email);
           this.enter();
         })
         .catch(error => {
-          this.$message.error("出错啦\n", error);
+          this.$message.error("出错啦");
         });
     },
     startup_anime() {
@@ -222,11 +354,66 @@ export default {
         this.avatars.man.push(require("../../static/avatar/man_" + i + ".svg"));
       }
     },
+    handleRegister() {
+      this.loginFormVisible = false;
+      this.registerFormVisible = true;
+    },
+    handleLogin() {
+      this.registerFormVisible = false;
+      this.loginFormVisible = true;
+    },
     handleTouristLogin() {
-      this.$router.push({ name: "square" });
+      this.loginFormVisible = false;
+      this.dialogNameVisible = true;
+      this.currentStatus = this.status.tourist;
     },
     changeAvartar(newIndex, oldIndex) {
       this.currentAvatarIndex = newIndex;
+    },
+    touristNext() {
+      if (this.username != "") {
+        this.dialogNameVisible = false;
+        this.dialogAvatarVisible = true;
+      }
+    },
+    registerNext() {
+      if (!this.submitForm("form")) {
+        return;
+      }
+      this.$axios
+        .get(this.serverUrl + "/user", {
+          params: { email: this.form.email }
+        })
+        .then(response => {
+          this.$message.error("邮箱已被使用");
+        })
+        .catch(error => {
+          this.registerFormVisible = false;
+          this.dialogAvatarVisible = true;
+          this.sex = this.form.sex;
+          this.currentStatus = this.status.register;
+        });
+    },
+    submitForm(formName) {
+      var result;
+      this.$refs[formName].validate(valid => {
+        if (!valid) {
+          result = false;
+          return false;
+        } else {
+          result = true;
+          return true;
+        }
+      });
+      return result;
+    },
+    handleLastStep() {
+      this.dialogAvatarVisible = false;
+      if (this.currentStatus == this.status.tourist) {
+        this.dialogNameVisible = true;
+      } else if (this.currentStatus == this.status.register) {
+        this.registerFormVisible = true;
+      }
     }
   }
 };
@@ -234,6 +421,13 @@ export default {
 
 <style scoped>
 @import url("https://fonts.googleapis.com/css?family=Baloo+Tamma&display=swap");
+@import url("https://fonts.googleapis.com/css?family=ZCOOL+KuaiLe");
+
+.letters,
+.letter {
+  font-family: "Baloo Tamma", cursive;
+}
+
 .enter {
   margin: 5rem 0;
   padding: 5rem 0;
@@ -241,7 +435,14 @@ export default {
   text-align: center;
   color: white;
   /* font-family: "Avenir", Helvetica, Arial, sans-serif; */
-  font-family: "Baloo Tamma", cursive;
+  font-family: "ZCOOL KuaiLe", cursive;
+}
+
+.el-select-dropdown__item,
+.dialog-footer,
+.el-form-item,
+.el-radio__label {
+  font-family: "ZCOOL KuaiLe", cursive;
 }
 
 .el-form-item {
@@ -271,12 +472,6 @@ embed {
 embed:hover {
   box-shadow: 0rem 0rem 1rem gainsboro;
 }
-
-/* iframe {
-  width: 5rem;
-  height: 5rem;
-  border-radius: 5rem;
-} */
 
 .ml1 {
   font-weight: 800;

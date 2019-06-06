@@ -50,7 +50,7 @@ public class WsController {
                 log.info(current.toString());
                 current.getCount().add(user.get("email"));
                 int mark = current.getCount().size() > 3 ? 1 : 6 - current.getCount().size();
-                current.setMark(addMark(current.getMark(), user.get("email"), mark));
+                current.setMark(addMark(current.getMark(), user.get("email"), mark, current.getDrawer()));
                 log.info(current.toString());
                 currentRepository.save(current);
                 template.convertAndSend("/topic/current/" + current.getRoomId(), current);
@@ -66,10 +66,13 @@ public class WsController {
         return message;
     }
 
-    private List<Map<String, Object>> addMark(List<Map<String, Object>> marks, String email, int newMark){
+    private List<Map<String, Object>> addMark(List<Map<String, Object>> marks, String email, int newMark, String drawer){
         marks.forEach(user -> {
             if (user.get("email").equals(email)) {
                 user.compute("mark", (k, v) -> v == null ? newMark : (Integer)v + newMark);
+            }
+            if (user.get("email").equals(drawer)) {
+                user.compute("mark", (k, v) -> v == null ? 1 : (Integer)v + 1);
             }
             user.remove("rank");
         } );
@@ -185,7 +188,7 @@ public class WsController {
                 result.compute("order", (k, v) -> "timer");
                 for (int i = 59; i >= 0; i--) {
                     try {
-                        Thread.sleep(300);
+                        Thread.sleep(1000);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
@@ -215,6 +218,7 @@ public class WsController {
         }
 
         // game stop
+        template.convertAndSend("/topic/canvas/" + roomId, "{\"type\":\"clean\"}");
         currentRepository.deleteByRoomId(roomId);
         result.compute("order", (k, v) -> "stop");
         log.warn(result.toString());

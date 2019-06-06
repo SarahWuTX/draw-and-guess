@@ -28,7 +28,7 @@ export default {
 <style scoped>
 .gif {
   position: absolute;
-  z-index: 10;
+  z-index: 3000;
   display: inline;
 }
 </style>
