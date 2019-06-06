@@ -60,10 +60,4 @@ export default {
   z-index: 10;
   text-align: center;
 }
-
-.ml12 .letter {
-  /* display: inline-block; */
-  /* line-height: 1em; */
-  /* top: 0.8em; */
-}
 </style>

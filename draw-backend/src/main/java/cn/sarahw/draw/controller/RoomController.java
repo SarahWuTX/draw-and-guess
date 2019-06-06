@@ -81,15 +81,16 @@ public class RoomController {
     public ResponseEntity<?> createRoom() {
         Room room = new Room();
         room.setId(Integer.toString(random.nextInt(1000)));
+        room.setName(room.getId());
         while (true) {
             try {
                 roomRepository.save(room);
                 break;
             } catch (Exception e) {
                 room.setId(Integer.toString(random.nextInt(1000)));
+                room.setName(room.getId());
             }
         }
-        room.setName(room.getId());
         return new ResponseEntity<>(room.getId(), HttpStatus.OK);
     }
 

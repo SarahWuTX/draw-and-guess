@@ -114,7 +114,7 @@
 
 <script>
 import anime from "animejs";
-import { callbackify } from "util";
+// import { callbackify } from "util";
 
 export default {
   name: "enter",
