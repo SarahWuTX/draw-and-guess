@@ -29,6 +29,9 @@ public class User {
     @Field("avatar")
     private String avatar;
 
+    @Field("room")
+    private String roomId;
+
 //    @Field("roomId")
 //    private String roomId;
 

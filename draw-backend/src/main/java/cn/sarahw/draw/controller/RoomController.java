@@ -109,6 +109,18 @@ public class RoomController {
         if (room.getUsers().indexOf(user) >= 0) {
             return ErrorMessage.userAlreadyInRoom;
         }
+        if (user.getRoomId() != null && !user.getRoomId().equals("")) {
+            Room previous = roomRepository.findRoomById(user.getRoomId());
+            if (previous != null) {
+                int index = previous.getUsers().indexOf(user);
+                if (index >= 0) {
+                    previous.getUsers().remove(index);
+                }
+                roomRepository.save(previous);
+            }
+        }
+        user.setRoomId(room.getId());
+        userRepository.save(user);
         room.getUsers().add(user);
         roomRepository.save(room);
         return new ResponseEntity<>(room, HttpStatus.OK);
@@ -126,6 +138,8 @@ public class RoomController {
         if (index < 0) {
             return ErrorMessage.userNotInRoom;
         }
+        user.setRoomId("");
+        userRepository.save(user);
         room.getUsers().remove(index);
         roomRepository.save(room);
         return new ResponseEntity<>(room, HttpStatus.OK);

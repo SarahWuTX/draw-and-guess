@@ -72,7 +72,7 @@ public class WsController {
                 user.compute("mark", (k, v) -> v == null ? newMark : (Integer)v + newMark);
             }
             if (user.get("email").equals(drawer)) {
-                user.compute("mark", (k, v) -> v == null ? 1 : (Integer)v + 1);
+                user.compute("mark", (k, v) -> v == null ? 2 : (Integer)v + 2);
             }
             user.remove("rank");
         } );
@@ -192,9 +192,11 @@ public class WsController {
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                    if (currentRepository.findByRoomId(roomId).getCount().size() == room.getUsers().size()) {
-                        result.compute("order", (k, v) -> "timesUp");
+                    if (currentRepository.findByRoomId(roomId).getCount().size() == room.getUsers().size() - 1) {
+                        result.put("timer", 0);
+                        System.out.print(0 + " ");
                         template.convertAndSend("/topic/order/" + room.getId() , result);
+                        result.remove("timer");
                         break;
                     }
                     result.put("timer", i);

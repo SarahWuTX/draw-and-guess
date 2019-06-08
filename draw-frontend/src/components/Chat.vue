@@ -1,7 +1,7 @@
 <template>
   <div id="chat">
     <div id="box" ref="box">
-      <div style="float: right; position: absolute">你好，{{$store.state.user.name}}</div>
+      <div id="hello">你好，{{$store.state.user.name}}</div>
       <div style="flex: 1"></div>
       <!-- <div
         class="bubble left"
@@ -137,6 +137,16 @@ export default {
   padding: 1rem 1rem 0.5rem 2rem;
   word-wrap: break-word;
   word-break: break-all;
+}
+
+#hello {
+  position: absolute;
+  right: 0;
+  padding: 0.5rem;
+  background-color: whitesmoke;
+  border-radius: 5rem;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
 }
 
 #box {

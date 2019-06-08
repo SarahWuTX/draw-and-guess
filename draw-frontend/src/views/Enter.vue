@@ -21,7 +21,7 @@
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <div style="float: left; color: gray; margin-top: 1rem; font-size: 0.5rem;">
+        <div style="float: left; color: gray; margin-top: 1rem; font-size: 1rem;">
           还没注册？
           <span class="link" @click="handleRegister">点击注册</span>
           或
@@ -64,11 +64,7 @@
     </el-dialog>
     <!-- 昵称对话框 -->
     <el-dialog title="设置昵称" :visible.sync="dialogNameVisible" width="40%">
-      <input
-        placeholder="输入昵称"
-        v-model="username"
-        @keyup.enter="dialogNameVisible = false; dialogAvatarVisible = true;"
-      >
+      <input placeholder="输入昵称" v-model="username" @keyup.enter="touristNext">
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogNameVisible = false">取 消</el-button>
         <el-button type="primary" @click="touristNext">下 一 步</el-button>
@@ -202,7 +198,8 @@ export default {
         woman: []
       },
       currentAvatarIndex: 0,
-      username: ""
+      username: "",
+      randomName: ""
     };
   },
   computed: {},
@@ -267,30 +264,40 @@ export default {
     },
     sureToCreateUser() {
       this.dialogAvatarVisible = false;
-      var id = Math.random()
-        .toString(36)
-        .substr(7);
+      if (this.randomName == "") {
+        this.randomName = Math.random()
+          .toString(36)
+          .substr(7);
+      }
       var avatar =
         this.sex == "1"
           ? this.avatars.woman[this.currentAvatarIndex]
           : this.avatars.man[this.currentAvatarIndex];
+      var username;
+      var user;
       if (this.currentStatus == this.status.tourist) {
-        var user = {
-          email: id,
-          password: id,
-          name: this.username,
-          avatar: avatar
+        username = this.username;
+        if (username == "") {
+          username = this.randomName;
+        }
+        user = {
+          email: this.randomName,
+          password: this.randomName,
+          name: username,
+          avatar: avatar,
+          roomId: ""
         };
       } else {
-        var username = this.form.name;
+        username = this.form.name;
         if (username == "") {
-          username = id;
+          username = this.randomName;
         }
-        var user = {
+        user = {
           email: this.form.email,
           password: this.form.password,
           name: username,
-          avatar: avatar
+          avatar: avatar,
+          roomId: ""
         };
       }
       this.$axios
@@ -363,6 +370,12 @@ export default {
       this.loginFormVisible = true;
     },
     handleTouristLogin() {
+      if (this.randomName == "") {
+        this.randomName = Math.random()
+          .toString(36)
+          .substr(7);
+      }
+      this.username = this.randomName;
       this.loginFormVisible = false;
       this.dialogNameVisible = true;
       this.currentStatus = this.status.tourist;
@@ -371,10 +384,11 @@ export default {
       this.currentAvatarIndex = newIndex;
     },
     touristNext() {
-      if (this.username != "") {
-        this.dialogNameVisible = false;
-        this.dialogAvatarVisible = true;
+      if (this.username == "") {
+        this.username = this.randomName;
       }
+      this.dialogNameVisible = false;
+      this.dialogAvatarVisible = true;
     },
     registerNext() {
       if (!this.submitForm("form")) {
